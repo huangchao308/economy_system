@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
+	pkgErrors "github.com/pkg/errors"
 	"gorm.io/gorm"
 
 	"economy_system/internal/biz"
@@ -36,27 +37,23 @@ func (r *CoinRepoImpl) Recharge(ctx context.Context, user uint64, amount float32
 		}
 		res := tx.Create(bill)
 		if res.Error != nil {
-			r.log.Errorf("Create err: %+v, bill: %v", res.Error, bill)
-			return res.Error
+			return pkgErrors.Wrapf(res.Error, "Create err, bill: %v", bill)
 		}
 		res = tx.Where(&biz.Coin{UserID: user}).Attrs(&biz.Coin{CreateAt: now, UpdateAt: now}).FirstOrCreate(coin)
 		if res.Error != nil {
-			r.log.Errorf("FirstOrCreate err: %+v, coin: %v", res.Error, coin)
-			return res.Error
+			return pkgErrors.Wrapf(res.Error, "FirstOrCreate err, coin: %v", coin)
 		}
 		coin.Balance += amount
 		coin.UpdateAt = now
 
 		res = tx.Updates(coin)
 		if res.Error != nil {
-			r.log.Errorf("Updates err: %+v", res.Error)
-			return res.Error
+			return pkgErrors.Wrapf(res.Error, "Update coin err. coin: %v", coin)
 		}
 		return nil
 	})
 	if err != nil {
-		r.log.Errorf("err: %+v", err)
-		return 0, err
+		return 0, pkgErrors.Wrap(err, "Recharge err")
 	}
 	return coin.Balance, nil
 }
@@ -82,23 +79,24 @@ func (r *CoinRepoImpl) ExChange(ctx context.Context, from, to uint64, amount flo
 			return res.Error
 		}
 		if fromCoin.Balance < amount {
-			return errors.Newf(400, "Insufficient_balance", "This user %v has not enough coins", from)
+			err := errors.Newf(400, "Insufficient_balance", "This user %v has not enough coins", from)
+			return pkgErrors.Wrap(err, "")
 		}
 		fromCoin.Balance -= amount
 		fromCoin.UpdateAt = now
 		res = tx.Updates(fromCoin)
 		if res.Error != nil {
-			return res.Error
+			return pkgErrors.Wrapf(res.Error, "Updates fromCoin err. %v", fromCoin)
 		}
 		res = tx.Where(&biz.Coin{UserID: to}).Attrs(&biz.Coin{CreateAt: now, UpdateAt: now}).FirstOrCreate(toCoin)
 		if res.Error != nil {
-			return res.Error
+			return pkgErrors.Wrapf(res.Error, "FirstOrCreate err. %v", toCoin)
 		}
 		toCoin.Balance += amount
 		toCoin.UpdateAt = now
 		res = tx.Updates(toCoin)
 		if res.Error != nil {
-			return res.Error
+			return pkgErrors.Wrapf(res.Error, "Updates toCoin err. %v", toCoin)
 		}
 		return nil
 	})
@@ -112,7 +110,7 @@ func (r *CoinRepoImpl) GetCoin(ctx context.Context, user uint64) (*biz.Coin, err
 	coin := &biz.Coin{UserID: user}
 	tx := r.data.db.WithContext(ctx).First(coin)
 	if tx.Error != nil {
-		return nil, tx.Error
+		return nil, pkgErrors.Wrapf(tx.Error, "First err. %v", coin)
 	}
 
 	return coin, nil

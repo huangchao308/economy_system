@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Shopify/sarama"
+	"github.com/pkg/errors"
 
 	"economy_system/internal/biz"
 	"economy_system/internal/conf"
@@ -32,11 +33,11 @@ func NewKafkaProducer(c *conf.Client) biz.KafkaProducer {
 func (p *KafkaProducerImpl) SendMsg(content interface{}) error {
 	msgList, err := p.buildMsgList(content)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "buildMsgList err. content: %v", content)
 	}
 	err = p.client.SendMessages(msgList)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "SendMessages err. msgList: %v", msgList)
 	}
 	return nil
 }

@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 
 	"economy_system/internal/biz"
 )
@@ -25,7 +27,7 @@ func (g *GiftRepoImpl) AddGiftBill(ctx context.Context, sender, receiver, giftID
 	}
 	tx := g.data.db.WithContext(ctx).Create(bill)
 	if tx.Error != nil {
-		return 0, tx.Error
+		return 0, errors.Wrapf(tx.Error, "Create bill err. %v", bill)
 	}
 	return bill.ID, nil
 }
@@ -34,7 +36,7 @@ func (g *GiftRepoImpl) UpdateGiftBillStatus(ctx context.Context, billID uint64, 
 	bill := &biz.GiftBill{ID: billID}
 	tx := g.data.db.WithContext(ctx).Model(bill).Update("status", status)
 	if tx.Error != nil {
-		return tx.Error
+		return errors.Wrapf(tx.Error, "Update bill err. billID: %d, status: %v", billID, status)
 	}
 	return nil
 }
@@ -43,7 +45,7 @@ func (g *GiftRepoImpl) GetGift(ctx context.Context, id uint64) (*biz.Gift, error
 	gift := &biz.Gift{ID: id}
 	tx := g.data.db.First(gift)
 	if tx.Error != nil {
-		return nil, tx.Error
+		return nil, errors.Wrapf(tx.Error, "Get gfit err. id: %d", id)
 	}
 	return gift, nil
 }
@@ -51,7 +53,7 @@ func (g *GiftRepoImpl) GetGift(ctx context.Context, id uint64) (*biz.Gift, error
 func (g *GiftRepoImpl) CreateGift(ctx context.Context, gift *biz.Gift) error {
 	tx := g.data.db.WithContext(ctx).Create(gift)
 	if tx.Error != nil {
-		return tx.Error
+		return errors.Wrapf(tx.Error, "Create gift err. %v", gift)
 	}
 	return nil
 }
@@ -59,7 +61,7 @@ func (g *GiftRepoImpl) CreateGift(ctx context.Context, gift *biz.Gift) error {
 func (g *GiftRepoImpl) UpdateGift(ctx context.Context, gift *biz.Gift) error {
 	tx := g.data.db.WithContext(ctx).Updates(gift)
 	if tx.Error != nil {
-		return tx.Error
+		return errors.Wrapf(tx.Error, "Update gift err. %v", gift)
 	}
 	return nil
 }
@@ -68,8 +70,8 @@ func (g *GiftRepoImpl) ListGift(ctx context.Context, pageIndex int, pageSize int
 	giftList := make([]*biz.Gift, 0, pageSize)
 	offset := (pageIndex - 1) * pageSize
 	tx := g.data.db.WithContext(ctx).Offset(offset).Limit(pageSize).Find(giftList)
-	if tx.Error != nil {
-		return nil, tx.Error
+	if tx.Error != nil && tx.Error != gorm.ErrRecordNotFound {
+		return nil, errors.Wrapf(tx.Error, "")
 	}
 
 	return giftList, nil
@@ -78,7 +80,7 @@ func (g *GiftRepoImpl) ListGift(ctx context.Context, pageIndex int, pageSize int
 func (g *GiftRepoImpl) ListGiveGiftBill(ctx context.Context, sender uint64) ([]*biz.GiftBill, error) {
 	billList := make([]*biz.GiftBill, 0)
 	tx := g.data.db.WithContext(ctx).Where(&biz.GiftBill{From: sender, Status: biz.SendGiftStatusCompleted}).Find(&billList)
-	if tx.Error != nil {
+	if tx.Error != nil && tx.Error != gorm.ErrRecordNotFound {
 		return nil, tx.Error
 	}
 
@@ -88,7 +90,7 @@ func (g *GiftRepoImpl) ListGiveGiftBill(ctx context.Context, sender uint64) ([]*
 func (g *GiftRepoImpl) ListReceiveGiftBill(ctx context.Context, receiver uint64) ([]*biz.GiftBill, error) {
 	billList := make([]*biz.GiftBill, 0)
 	tx := g.data.db.WithContext(ctx).Where(&biz.GiftBill{To: receiver, Status: biz.SendGiftStatusCompleted}).Find(&billList)
-	if tx.Error != nil {
+	if tx.Error != nil && tx.Error != gorm.ErrRecordNotFound {
 		return nil, tx.Error
 	}
 

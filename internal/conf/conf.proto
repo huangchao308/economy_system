@@ -60,10 +60,6 @@ message Client {
   message Kafka {
     string addr = 1;
     string topic = 2;
-    string group = 3;
-    string version = 4;
-    bool oldest = 5;
-    string assignor = 6;
   }
 
   GRPC grpc = 1;

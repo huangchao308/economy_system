@@ -4,6 +4,10 @@ package api.gift.v1;
 
 import "google/api/annotations.proto";
 
+// the validate rules:
+// https://github.com/envoyproxy/protoc-gen-validate
+import "validate/validate.proto";
+
 option go_package = "economy_system/api/gift/v1;v1";
 option java_multiple_files = true;
 option java_package = "api.gift.v1";
@@ -28,10 +32,10 @@ service Gift {
 }
 
 message GiveGiftRequest {
-	uint64 sender_id = 1;
-	uint64 receiver_id = 2;
-	uint64 gift_id = 3;
-	uint64 num = 4;
+	uint64 sender_id = 1 [(validate.rules).uint64.gte = 1];
+	uint64 receiver_id = 2 [(validate.rules).uint64.gte = 1];
+	uint64 gift_id = 3 [(validate.rules).uint64.gte = 1];
+	uint64 num = 4 [(validate.rules).uint64.gte = 1];
 }
 message GiveGiftReply {
 	int32 err_code = 1;

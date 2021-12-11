@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package api.gift.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "economy_system/api/gift/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.gift.v1";
+
+service Gift {
+	rpc GiveGift (GiveGiftRequest) returns (GiveGiftReply) {
+		option (google.api.http) = {
+			post: "/gift/give_gift",
+			body: "*",
+		};
+	};
+	rpc GetSendingHistory(GetSendingHistoryRequest) returns (GetSendingHistoryReply) {
+		option (google.api.http) = {
+			get: "/gift/sending_history/{user_id}"
+		};
+	};
+	rpc GetReceivingHistory(GetReceivingHistoryRequest) returns (GetReceivingHistoryReply) {
+		option (google.api.http) = {
+			get: "/gift/receiving_history/{user_id}"
+		};
+	};
+}
+
+message GiveGiftRequest {
+	uint64 sender_id = 1;
+	uint64 receiver_id = 2;
+	uint64 gift_id = 3;
+	uint64 num = 4;
+}
+message GiveGiftReply {
+	int32 err_code = 1;
+}
+
+message GiftHistory {
+	uint64 gift_id = 1;
+	string gift_name = 2;
+	float gift_value = 3;
+	uint64 sender_id = 4;
+	uint64 receiver_id = 5;
+	string sender_nickname = 6;
+	string receiver_nickname = 7;
+	uint64 send_time = 8;
+	uint64 num = 9;
+}
+
+message GetSendingHistoryRequest {
+	uint64 user_id = 1;
+}
+message GetSendingHistoryReply {
+	int32 err_code = 1;
+	repeated GiftHistory history = 2;
+}
+
+message GetReceivingHistoryRequest {
+	uint64 user_id = 1;
+}
+message GetReceivingHistoryReply {
+	int32 err_code = 1;
+	repeated GiftHistory history = 2;
+}

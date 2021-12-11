@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package api.coin.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "economy_system/api/coin/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.coin.v1";
+
+service Coin {
+	rpc Recharge (RechargeCoinRequest) returns (RechargeCoinReply) {
+		option (google.api.http) = {
+			post: "/coin/recharge",
+			body: "*",
+		};
+	};
+	rpc ConsumeCoin (ConsumeCoinRequest) returns (ConsumeCoinReply) {
+		option (google.api.http) = {
+			post: "/coin/consume",
+			body: "*",
+		};
+	};
+	rpc GetCoinBalance (GetCoinBalanceRequest) returns (GetCoinBalanceReply) {
+		option (google.api.http) = {
+			get: "/coin/balance/{user_id}"
+		};
+	};
+}
+
+message RechargeCoinRequest {
+	uint64 user_id = 1;
+	float coin_num = 2;
+}
+message RechargeCoinReply {
+	int32 err_code = 1;
+	float balance = 2;
+}
+
+message ConsumeCoinRequest {
+	uint64 user_id = 1;
+	float coin_num = 2;
+}
+message ConsumeCoinReply {
+	int32 err_code = 1;
+	float balance = 2;
+}
+
+message GetCoinBalanceRequest {
+	uint64 user_id = 1;
+}
+message GetCoinBalanceReply {
+	int32 err_code = 1;
+	float balance = 2;
+}

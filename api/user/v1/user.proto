@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package api.user.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "economy_system/api/user/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.user.v1";
+
+service User {
+	rpc CreateUser (CreateUserRequest) returns (CreateUserReply) {
+		option (google.api.http) = {
+			post: "/user/add",
+			body: "*",
+		};
+	};
+	rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply) {
+		option (google.api.http) = {
+			post: "/user/update",
+			body: "*",
+		};
+	};
+	rpc GetUser (GetUserRequest) returns (GetUserReply) {
+		option (google.api.http) = {
+			get: "/user/{id}"
+		};
+	};
+}
+
+message CreateUserRequest {
+	string username = 1;
+	string password = 2;
+	string nickname = 3;
+	string head_img = 4;
+}
+message CreateUserReply {
+	int32 err_code = 1;
+}
+
+message UpdateUserRequest {
+	uint64 id = 1;
+	string password = 2;
+	string nickname = 3;
+	string head_img = 4;
+	string username = 5;
+}
+message UpdateUserReply {
+	int32 err_code = 1;
+}
+
+message GetUserRequest {
+	uint64 id = 1;
+}
+message GetUserReply {
+	int32 err_code = 1;
+	UserData user = 2;
+}
+
+message UserData {
+	uint64 id = 1;
+	string username = 2;
+	string nickname = 3;
+	string head_img = 4;
+}

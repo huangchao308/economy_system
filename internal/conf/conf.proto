@@ -8,6 +8,7 @@ import "google/protobuf/duration.proto";
 message Bootstrap {
   Server server = 1;
   Data data = 2;
+  Client client = 3;
 }
 
 message Server {
@@ -21,8 +22,17 @@ message Server {
     string addr = 2;
     google.protobuf.Duration timeout = 3;
   }
+  message Kafka {
+    string addr = 1;
+    string topic = 2;
+    string group = 3;
+    string version = 4;
+    bool oldest = 5;
+    string assignor = 6;
+  }
   HTTP http = 1;
   GRPC grpc = 2;
+  Kafka kafka = 3;
 }
 
 message Data {
@@ -38,4 +48,24 @@ message Data {
   }
   Database database = 1;
   Redis redis = 2;
+}
+
+message Client {
+  message GRPC {
+    string network = 1;
+    string addr = 2;
+    google.protobuf.Duration timeout = 3;
+  }
+
+  message Kafka {
+    string addr = 1;
+    string topic = 2;
+    string group = 3;
+    string version = 4;
+    bool oldest = 5;
+    string assignor = 6;
+  }
+
+  GRPC grpc = 1;
+  Kafka kafka = 2;
 }
